@@ -9,7 +9,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.util.Log;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import jp.ac.titech.itpro.sdl.connectedhazardmap.databinding.ActivityDownloaderBinding;
 
@@ -31,12 +30,10 @@ public class DownloaderActivity extends AppCompatActivity {
         CollapsingToolbarLayout toolBarLayout = binding.toolbarLayout;
         toolBarLayout.setTitle(getTitle());
 
-        LinearLayout list = findViewById(R.id.downloader_list);
-        // TODO: add proper items
-        for (int i = 0; i < 1000; i++) {
-            TextView item = new TextView(this);
-            item.setText("example item " + i);
-            list.addView(item);
+        LinearLayout placeList = findViewById(R.id.downloader_list);
+        for (int i = 0; i < 100; i++) {
+            PlaceRow placeRow = PlaceRow.createHere(new PlaceData("place" + i), this);
+            placeList.addView(placeRow.row);
         }
     }
 
