@@ -12,6 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ConnectedHazardMap">
+        <activity
+            android:name=".DownloaderActivity"
+            android:exported="false"
+            android:label="@string/title_activity_downloader"
+            android:theme="@style/Theme.ConnectedHazardMap.NoActionBar" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
