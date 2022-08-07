@@ -10,5 +10,5 @@ public class Place {
 
     public String placeName;
     public float governmentLat;
-    public float governmentLag;
+    public float governmentLng;
 }

@@ -13,7 +13,7 @@ public class HazardMap {
     public String uri;
     public int usedPage;
     public float centerLat;
-    public float centerLag;
+    public float centerLng;
     public float width;
     public float height;
 }
