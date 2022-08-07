@@ -48,7 +48,7 @@ public class PlaceRow {
     private TextView getPlaceText() {
         return (TextView) row.getChildAt(0);
     }
-    private Button getAdjustButton() {
+    public Button getAdjustButton() {
         return (Button) row.getChildAt(1);
     }
     public Button getDownloadButton() {

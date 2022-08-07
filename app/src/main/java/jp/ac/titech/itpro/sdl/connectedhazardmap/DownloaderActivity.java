@@ -26,7 +26,9 @@ import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.HazardMap;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Place;
 
 public class DownloaderActivity extends AppCompatActivity {
-    private final static String TAG = DownloaderActivity.class.getSimpleName();
+    public static final String EXTRA_PLACE = "jp.ac.titech.itpro.sdl.connectedhazardmap.PLACE";
+    public static final String EXTRA_TYPE = "jp.ac.titech.itpro.sdl.connectedhazardmap.TYPE";
+    private static final String TAG = DownloaderActivity.class.getSimpleName();
 
     private int tabType = 1;
 
@@ -88,17 +90,24 @@ public class DownloaderActivity extends AppCompatActivity {
     private void updateContent() {
         LinearLayout placeList = findViewById(R.id.downloader_list);
         placeList.removeAllViews();
+        final int type = tabType;
         for (Place place : Data.placeMap.values()) {
-            if (!place.hasHazardMapOf(tabType)) continue;
-            PlaceRow placeRow = PlaceRow.createHere(place, tabType, this);
+            if (!place.hasHazardMapOf(type)) continue;
+            PlaceRow placeRow = PlaceRow.createHere(place, type, this);
             placeRow.getDownloadButton().setOnClickListener((view -> {
-                if (placeRow.mapIsDownloaded(externalStorageFilePath(tabType, place.placeName))) {
+                if (placeRow.mapIsDownloaded(externalStorageFilePath(placeRow.tabType, placeRow.place.placeName))) {
                     deleteHazardMap(placeRow);
                 } else{
                     downloadHazardMap(placeRow);
                 }
             }));
-            placeRow.updateDownloadButton(externalStorageFilePath(tabType, place.placeName));
+            placeRow.getAdjustButton().setOnClickListener((view -> {
+                Intent intent = new Intent(this, AdjusterActivity.class);
+                intent.putExtra(EXTRA_PLACE, placeRow.place.placeName);
+                intent.putExtra(EXTRA_TYPE, placeRow.tabType);
+                startActivity(intent);
+            }));
+            placeRow.updateDownloadButton(externalStorageFilePath(placeRow.tabType, place.placeName));
             placeList.addView(placeRow.row);
         }
     }
