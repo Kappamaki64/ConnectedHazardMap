@@ -9,32 +9,35 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.util.Log;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
-import jp.ac.titech.itpro.sdl.connectedhazardmap.databinding.ActivityDownloaderBinding;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import jp.ac.titech.itpro.sdl.connectedhazardmap.database.DB;
+import jp.ac.titech.itpro.sdl.connectedhazardmap.database.Place;
 
 public class DownloaderActivity extends AppCompatActivity {
     private final static String TAG = DownloaderActivity.class.getSimpleName();
-
-    private ActivityDownloaderBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        setContentView(R.layout.activity_downloader);
 
-        binding = ActivityDownloaderBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        Toolbar toolbar = binding.toolbar;
-        setSupportActionBar(toolbar);
-        CollapsingToolbarLayout toolBarLayout = binding.toolbarLayout;
-        toolBarLayout.setTitle(getTitle());
-
-        LinearLayout placeList = findViewById(R.id.downloader_list);
-        for (int i = 0; i < 100; i++) {
-            PlaceRow placeRow = PlaceRow.createHere(new PlaceData("place" + i), this);
-            placeList.addView(placeRow.row);
-        }
+        DB.getInstance(getApplicationContext()).placeDao().getAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((places) -> {
+                    LinearLayout placeList = findViewById(R.id.downloader_list);
+                    for (Place place : places) {
+                        PlaceRow placeRow = PlaceRow.createHere(place, this);
+                        placeList.addView(placeRow.row);
+                    }
+                }, (e) -> {
+                    Log.e(TAG, e.getMessage());
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }).dispose();
     }
 
     @Override

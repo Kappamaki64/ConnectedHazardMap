@@ -32,6 +32,9 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
+import jp.ac.titech.itpro.sdl.connectedhazardmap.database.DB;
+import jp.ac.titech.itpro.sdl.connectedhazardmap.database.Place;
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
     private final static String TAG = MapsActivity.class.getSimpleName();
 

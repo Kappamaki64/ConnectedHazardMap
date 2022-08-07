@@ -8,18 +8,22 @@ import androidx.room.Update;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+
 @Dao
 public interface HazardMapDao {
     @Insert
-    void insertAll(HazardMap... hazardMaps);
-    void insertAll(List<HazardMap> hazardMaps);
+    Completable insertAll(HazardMap... hazardMaps);
+    @Insert
+    Completable insertAll(List<HazardMap> hazardMaps);
 
     @Update
-    void update(HazardMap hazardMap);
+    Completable update(HazardMap hazardMap);
 
     @Delete
-    void delete(HazardMap hazardMap);
+    Completable delete(HazardMap hazardMap);
 
     @Query("SELECT * FROM hazardmap")
-    List<HazardMap> getAll();
+    Single<List<HazardMap>> getAll();
 }

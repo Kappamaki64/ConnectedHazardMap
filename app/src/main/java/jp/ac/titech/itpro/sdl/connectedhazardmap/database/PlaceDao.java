@@ -9,22 +9,26 @@ import androidx.room.Update;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+
 @Dao
 public interface PlaceDao {
     @Insert
-    void insertAll(Place... places);
-    void insertAll(List<Place> places);
+    Completable insertAll(Place... places);
+    @Insert
+    Completable insertAll(List<Place> places);
 
     @Update
-    void update(Place place);
+    Completable update(Place place);
 
     @Delete
-    void delete(Place place);
+    Completable delete(Place place);
 
     @Query("SELECT * FROM place")
-    List<Place> getAll();
+    Single<List<Place>> getAll();
 
     @Transaction
     @Query("SELECT * FROM place")
-    List<PlaceWithHazardMaps> getAllWithHazardMaps();
+    Single<List<PlaceWithHazardMaps>> getAllWithHazardMaps();
 }
