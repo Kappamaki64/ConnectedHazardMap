@@ -52,6 +52,7 @@ public class Data {
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(2, "https://www.city.shinagawa.tokyo.jp/ct/pdf/hpg000020939_2.pdf", 0, 35.59859f, 139.7371f, 2600, 3674.0552f));
         place = new Place("Shinagawa", "品川区", 35.60902119366901f, 139.7303381950257f, hazardMaps);
         placeMap.put(place.placeName, place);
 
@@ -60,10 +61,12 @@ public class Data {
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(2, "http://www.city.ota.tokyo.jp/seikatsu/chiiki/bousai/suigai/hazardmap.files/1-1tamagawa.pdf", 0, 35.57414f, 139.72173f, 14750, 10436.555f));
         place = new Place("Ota", "大田区", 35.56125418300611f, 139.71598835356352f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(2, "https://www.city.setagaya.lg.jp/mokuji/kurashi/005/003/003/d00005601_d/fil/3.pdf", 0, 35.61759f, 139.59526f, 17750, 10038.056f));
         place = new Place("Setagaya", "世田谷区", 35.6465854729032f, 139.65331596525746f, hazardMaps);
         placeMap.put(place.placeName, place);
 
