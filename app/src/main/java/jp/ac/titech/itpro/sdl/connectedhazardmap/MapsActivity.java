@@ -9,9 +9,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.pdf.PdfRenderer;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Looper;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,7 +33,20 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.tabs.TabLayout;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Data;
+import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.HazardMap;
+import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Place;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
     public static final int MAX_DOTS_OF_HAZARD_MAP = 5000;
@@ -45,6 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int REQ_PERMISSIONS = 1234;
 
     private GoogleMap map;
+    private final List<GroundOverlay> hazardMapOverlays = new ArrayList<>();
 
     private FusedLocationProviderClient locationClient;
     private LocationRequest request;
@@ -52,11 +70,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Location latestMyLocation = null;
 
+    private int tabType = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_maps);
+
+        TabLayout tabLayout = findViewById(R.id.tabs);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                Log.d(TAG, "tab selected: " + tab.getId() + " " + tab.getText());
+                CharSequence text = tab.getText();
+                if (getText(R.string.type1).equals(text)) {
+                    tabType = 1;
+                } else if (getText(R.string.type2).equals(text)) {
+                    tabType = 2;
+                } else {
+                    Log.e(TAG, "unknown tab is selected");
+                    return;
+                }
+                updateOverlays();
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) { }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) { }
+        });
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -153,6 +195,85 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "onMapReady");
         this.map = googleMap;
         map.moveCamera(CameraUpdateFactory.zoomTo(15f));
+        updateOverlays();
+    }
+
+    private void updateOverlays() {
+        for (GroundOverlay hazardMapOverlay : hazardMapOverlays) {
+            hazardMapOverlay.remove();
+        }
+        hazardMapOverlays.clear();
+
+        final int type = tabType;
+        for (Place place : Data.placeMap.values()) {
+            if (!place.hasHazardMapOf(type)) continue;
+            HazardMap hazardMap = place.getFirstHazardMap(type);
+            if (hazardMap.centerLat == -1 || hazardMap.centerLng == -1 || hazardMap.width == -1 || hazardMap.height == -1) continue;
+
+            Bitmap hazardMapBitmap = getHazardMapBitmap(place, hazardMap);
+            LatLng center = new LatLng(hazardMap.centerLat, hazardMap.centerLng);
+            GroundOverlayOptions overlayOptions = new GroundOverlayOptions()
+                    .image(BitmapDescriptorFactory.fromBitmap(hazardMapBitmap))
+                    .position(center, hazardMap.width, hazardMap.height);
+            GroundOverlay hazardMapOverlay = map.addGroundOverlay(overlayOptions);
+            hazardMapOverlays.add(hazardMapOverlay);
+        }
+    }
+
+
+    private Bitmap getHazardMapBitmap(Place place, HazardMap hazardMap) {
+        Bitmap hazardMapBitmap = null;
+
+        try {
+            File f = new File(externalStorageFilePath(hazardMap.type, place.placeName));
+            ParcelFileDescriptor parcelFileDescriptor = ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
+            PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
+            PdfRenderer.Page page = renderer.openPage(hazardMap.usedPageIndex);
+
+            // densityDpi: dots / inch, get{Width,Height}(): (1 / 72) inch
+            int defaultWidth = getResources().getDisplayMetrics().densityDpi / 72 * page.getWidth();
+            int defaultHeight = getResources().getDisplayMetrics().densityDpi / 72 * page.getHeight();
+
+            int width, height;
+            if (defaultWidth > MapsActivity.MAX_DOTS_OF_HAZARD_MAP || defaultHeight > MapsActivity.MAX_DOTS_OF_HAZARD_MAP) {
+                if (defaultWidth > defaultHeight) {
+                    width = MapsActivity.MAX_DOTS_OF_HAZARD_MAP;
+                    height = (int) ((MapsActivity.MAX_DOTS_OF_HAZARD_MAP / (double) defaultWidth) * defaultHeight);
+                } else {
+                    width = (int) ((MapsActivity.MAX_DOTS_OF_HAZARD_MAP / (double) defaultHeight) * defaultWidth);
+                    height = MapsActivity.MAX_DOTS_OF_HAZARD_MAP;
+                }
+            } else {
+                width = defaultWidth;
+                height = defaultHeight;
+            }
+
+            if (hazardMap.centerLat == -1) hazardMap.centerLat = place.governmentLat;
+            if (hazardMap.centerLng == -1) hazardMap.centerLng = place.governmentLng;
+            if (hazardMap.width == -1) hazardMap.width = defaultWidth;
+            if (hazardMap.height == -1) hazardMap.height = defaultHeight;
+
+            hazardMapBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            page.render(hazardMapBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            page.close();
+            renderer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return hazardMapBitmap;
+    }
+
+    private String externalStorageFilePath(int tabType, String placeName) {
+        return externalStorageDir(tabType) + "/" + placeName + ".pdf";
+    }
+    private String externalStorageDir(int tabType) {
+        String dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/type" + tabType;
+        File f = new File(dir);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return dir;
     }
 
     @SuppressLint("MissingPermission")
