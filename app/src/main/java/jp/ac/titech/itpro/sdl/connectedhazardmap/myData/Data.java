@@ -15,10 +15,12 @@ public class Data {
         List<HazardMap> hazardMaps;
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.chiyoda.lg.jp/documents/2086/shiryo8-9_2.pdf", 0, 35.69114f, 139.78728f, 8000, 5653.762f));
         place = new Place("Chiyoda", "千代田区", 35.69411351250211f, 139.75330682513686f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.chuo.lg.jp/bosai/bosai/suigaisonae/kouzuihazard/kozui02.files/R4arakawatizu.pdf", 0, 35.671673f, 139.77394f, 4700, 6647.1436f));
         place = new Place("Chuo", "中央区", 35.670409667993006f, 139.77201791529674f, hazardMaps);
         placeMap.put(place.placeName, place);
 
@@ -86,10 +88,12 @@ public class Data {
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.arakawa.tokyo.jp/documents/576/0412_arakawakuhm_map.pdf", 0, 35.745064f, 139.7872f, 7250, 5130.8774f));
         place = new Place("Arakawa", "荒川区", 35.735933199343776f, 139.7831871158724f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.itabashi.tokyo.jp/_res/projects/default_project/_page_/001/005/633/arakawahanranban.pdf", 0, 35.767635f, 139.6739f, 12000, 8484.849f));
         place = new Place("Itabashi", "板橋区", 35.751132942147f, 139.70949375353518f, hazardMaps);
         placeMap.put(place.placeName, place);
 
@@ -98,14 +102,17 @@ public class Data {
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.adachi.tokyo.jp/documents/2808/hm05-08.pdf", 0, 35.77842f, 139.80167f, 13000, 9198.32f));
         place = new Place("Adachi", "足立区", 35.77497706568685f, 139.8044180254643f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.katsushika.lg.jp/_res/projects/default_project/_page_/001/022/522/r4arakawanakagawaedogawahazard.pdf", 0, 35.754486f, 139.85179f, 7600, 10748.572f));
         place = new Place("Katsushika", "葛飾区", 35.74348525905646f, 139.84719871020306f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
+        hazardMaps.add(new HazardMap(1, "https://www.city.edogawa.tokyo.jp/documents/519/step5-3.pdf", 0, 35.69279f, 139.87497f, 10750, 15194.541f));
         place = new Place("Edogawa", "江戸川区", 35.70665303810955f, 139.8684263365995f, hazardMaps);
         placeMap.put(place.placeName, place);
     }
