@@ -37,6 +37,9 @@ public class DownloaderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_downloader);
+        setSupportActionBar(findViewById(R.id.toolbar));
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -85,6 +88,12 @@ public class DownloaderActivity extends AppCompatActivity {
     protected void onStop() {
         Log.d(TAG, "onStop");
         super.onStop();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        startActivity(new Intent(this, MapsActivity.class));
+        return super.onSupportNavigateUp();
     }
 
     private void updateContent() {
