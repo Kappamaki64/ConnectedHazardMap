@@ -4,15 +4,25 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.File;
+import java.io.IOException;
 
 import jp.ac.titech.itpro.sdl.connectedhazardmap.databinding.ActivityAdjusterBinding;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Data;
@@ -24,7 +34,12 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
 
     private Place place;
     private HazardMap hazardMap;
+
+    private Bitmap hazardMapBitmap;
+    private int defaultWidth, defaultHeight;
+
     private GoogleMap map;
+    private GroundOverlay hazardMapOverlay = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +71,7 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
             mapFragment.getMapAsync(this);
         }
 
+        setupHazardMapBitmap();
     }
 
     @Override
@@ -98,5 +114,84 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
         map.addMarker(new MarkerOptions().position(governmentLatLng).title("庁舎"));
         map.moveCamera(CameraUpdateFactory.zoomTo(12f));
         map.moveCamera(CameraUpdateFactory.newLatLng(governmentLatLng));
+
+        overlayHazardMapBitmap();
+    }
+
+    private void overlayHazardMapBitmap() {
+        if (hazardMapOverlay != null) {
+            hazardMapOverlay.remove();
+        }
+
+        LatLng center;
+        if (hazardMap.centerLat == -1 || hazardMap.centerLng == -1) {
+            center = new LatLng(place.governmentLat, place.governmentLng);
+            hazardMap.centerLat = place.governmentLat;
+            hazardMap.centerLng = place.governmentLng;
+        } else {
+            center = new LatLng(hazardMap.centerLat, hazardMap.centerLng);
+        }
+
+        float width, height;
+        if (hazardMap.width == -1 || hazardMap.height == -1) {
+            width = defaultWidth;
+            height = defaultHeight;
+            hazardMap.width = defaultWidth;
+            hazardMap.height = defaultHeight;
+        } else {
+            width = hazardMap.width;
+            height = hazardMap.height;
+        }
+
+        GroundOverlayOptions overlayOptions = new GroundOverlayOptions()
+                .image(BitmapDescriptorFactory.fromBitmap(hazardMapBitmap))
+                .position(center, width, height);
+        hazardMapOverlay = map.addGroundOverlay(overlayOptions);
+    }
+
+    private void setupHazardMapBitmap() {
+        try {
+            File f = new File(externalStorageFilePath(hazardMap.type, place.placeName));
+            ParcelFileDescriptor parcelFileDescriptor = ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
+            PdfRenderer renderer = new PdfRenderer(parcelFileDescriptor);
+            PdfRenderer.Page page = renderer.openPage(hazardMap.usedPageIndex);
+
+            // densityDpi: dots / inch, get{Width,Height}(): (1 / 72) inch
+            defaultWidth = getResources().getDisplayMetrics().densityDpi / 72 * page.getWidth();
+            defaultHeight = getResources().getDisplayMetrics().densityDpi / 72 * page.getHeight();
+
+            int width, height;
+            if (defaultWidth > MapsActivity.MAX_DOTS_OF_HAZARD_MAP || defaultHeight > MapsActivity.MAX_DOTS_OF_HAZARD_MAP) {
+                if (defaultWidth > defaultHeight) {
+                    width = MapsActivity.MAX_DOTS_OF_HAZARD_MAP;
+                    height = (int) ((MapsActivity.MAX_DOTS_OF_HAZARD_MAP / (double) defaultWidth) * defaultHeight);
+                } else {
+                    width = (int) ((MapsActivity.MAX_DOTS_OF_HAZARD_MAP / (double) defaultHeight) * defaultWidth);
+                    height = MapsActivity.MAX_DOTS_OF_HAZARD_MAP;
+                }
+            } else {
+                width = defaultWidth;
+                height = defaultHeight;
+            }
+
+            hazardMapBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            page.render(hazardMapBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
+            page.close();
+            renderer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String externalStorageFilePath(int tabType, String placeName) {
+        return externalStorageDir(tabType) + "/" + placeName + ".pdf";
+    }
+    private String externalStorageDir(int tabType) {
+        String dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/type" + tabType;
+        File f = new File(dir);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return dir;
     }
 }

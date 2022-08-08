@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -32,20 +31,18 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
-import jp.ac.titech.itpro.sdl.connectedhazardmap.database.DB;
-import jp.ac.titech.itpro.sdl.connectedhazardmap.database.Place;
-
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private final static String TAG = MapsActivity.class.getSimpleName();
+    public static final int MAX_DOTS_OF_HAZARD_MAP = 5000;
+    private static final String TAG = MapsActivity.class.getSimpleName();
 
-    private final static String[] PERMISSIONS = {
+    private static final String[] PERMISSIONS = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE
     };
-    private final static int REQ_PERMISSIONS = 1234;
+    private static final int REQ_PERMISSIONS = 1234;
 
     private GoogleMap map;
 

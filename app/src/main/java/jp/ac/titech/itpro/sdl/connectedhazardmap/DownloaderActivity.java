@@ -13,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -102,6 +102,12 @@ public class DownloaderActivity extends AppCompatActivity {
                 }
             }));
             placeRow.getAdjustButton().setOnClickListener((view -> {
+                if (!placeRow.mapIsDownloaded(externalStorageFilePath(placeRow.tabType, placeRow.place.placeName))) {
+                    String text = getString(R.string.toast_requires_download);
+                    Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Intent intent = new Intent(this, AdjusterActivity.class);
                 intent.putExtra(EXTRA_PLACE, placeRow.place.placeName);
                 intent.putExtra(EXTRA_TYPE, placeRow.tabType);

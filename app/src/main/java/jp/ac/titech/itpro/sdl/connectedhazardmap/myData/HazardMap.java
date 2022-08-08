@@ -3,7 +3,7 @@ package jp.ac.titech.itpro.sdl.connectedhazardmap.myData;
 public class HazardMap {
     public int type;
     public String uri;
-    public int usedPage;
+    public int usedPageIndex;
     public float centerLat;
     public float centerLng;
     public float width;
@@ -12,7 +12,7 @@ public class HazardMap {
     public HazardMap(
             int type,
             String uri,
-            int usedPage,
+            int usedPageIndex,
             float centerLat,
             float centerLng,
             float width,
@@ -20,7 +20,7 @@ public class HazardMap {
     ) {
         this.type = type;
         this.uri = uri;
-        this.usedPage = usedPage;
+        this.usedPageIndex = usedPageIndex;
         this.centerLat = centerLat;
         this.centerLng = centerLng;
         this.width = width;
