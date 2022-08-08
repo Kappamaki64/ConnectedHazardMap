@@ -12,6 +12,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -47,6 +48,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.material.tabs.TabLayout;
 
 import java.io.File;
@@ -87,6 +89,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView locationTextView;
     private boolean hazardMapIsLocked;
     private int tabType = 1;
+    private boolean mapIsNoIconsStyle = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -256,6 +259,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.action_downloader:
                 startActivity(new Intent(this, DownloaderActivity.class));
                 return true;
+            case R.id.action_map_style:
+                try {
+                    if (mapIsNoIconsStyle) {
+                        boolean success = map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_default));
+                        if (success) mapIsNoIconsStyle = false;
+                    } else {
+                        boolean success = map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style_no_icons));
+                        if (success) mapIsNoIconsStyle = true;
+                    }
+                } catch (Resources.NotFoundException e) {
+                    e.printStackTrace();
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -335,6 +351,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (!place.hasHazardMapOf(type)) continue;
             HazardMap hazardMap = place.getFirstHazardMap(type);
             if (hazardMap.centerLat == -1 || hazardMap.centerLng == -1 || hazardMap.width == -1 || hazardMap.height == -1) continue;
+            File f = new File(externalStorageFilePath(hazardMap.type, place.placeName));
+            if (!f.exists()) continue;
 
             Bitmap hazardMapBitmap = getHazardMapBitmap(place, hazardMap);
             LatLng center = new LatLng(hazardMap.centerLat, hazardMap.centerLng);

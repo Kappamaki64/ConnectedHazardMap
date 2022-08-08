@@ -4,5 +4,8 @@
     <item
         android:id="@+id/action_downloader"
         android:title="@string/action_downloader" />
+    <item
+        android:id="@+id/action_map_style"
+        android:title="@string/action_map_style" />
 
 </menu>
