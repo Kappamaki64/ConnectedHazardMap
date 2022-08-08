@@ -28,6 +28,21 @@
         map:layout_constraintTop_toTopOf="@id/map"
         map:srcCompat="@android:drawable/ic_menu_mylocation" />
 
+    <ImageButton
+        android:id="@+id/updateOverlayButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:alpha="0.8"
+        android:backgroundTint="@color/teal_200"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:src="@android:drawable/ic_menu_rotate"
+        map:layout_constraintEnd_toEndOf="@id/map"
+        map:layout_constraintTop_toBottomOf="@id/updateCenterButton"
+        map:srcCompat="@android:drawable/ic_menu_rotate" />
+
     <EditText
         android:id="@+id/editText_lat"
         android:layout_width="wrap_content"

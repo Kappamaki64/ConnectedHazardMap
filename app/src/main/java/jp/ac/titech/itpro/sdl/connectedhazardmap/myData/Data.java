@@ -35,17 +35,17 @@ public class Data {
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
-        hazardMaps.add(new HazardMap(1, "https://www.city.taito.lg.jp/bosai/map/saigai/hazardmap.files/arakawa_omote.pdf", 0, -1, -1, -1, -1));
+        hazardMaps.add(new HazardMap(1, "https://www.city.taito.lg.jp/bosai/map/saigai/hazardmap.files/arakawa_omote.pdf", 0, 35.713528f, 139.78589f, 44000, 6222.858f));
         place = new Place("Taito", "台東区", 35.712560182704074f, 139.78002508126815f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
-        hazardMaps.add(new HazardMap(1, "https://www.city.sumida.lg.jp/anzen_anshin/bousai/suigai/suigai.files/kouzui_hukasa.pdf", 0, -1, -1, -1, -1));
+        hazardMaps.add(new HazardMap(1, "https://www.city.sumida.lg.jp/anzen_anshin/bousai/suigai/suigai.files/kouzui_hukasa.pdf", 0, 35.709717f, 139.81505f, 6100, 8541.05f));
         place = new Place("Sumida", "墨田区", 35.710743880187366f, 139.80155869793938f, hazardMaps);
         placeMap.put(place.placeName, place);
 
         hazardMaps = new ArrayList<>();
-        hazardMaps.add(new HazardMap(1, "https://www.city.koto.lg.jp/470601/documents/kouzuimap.pdf", 0, -1, -1, -1, -1));
+        hazardMaps.add(new HazardMap(1, "https://www.city.koto.lg.jp/470601/documents/kouzuimap.pdf", 0, 35.6449f, 139.80554f, 10750, 15192.993f));
         place = new Place("Koto", "江東区", 35.67285711879735f, 139.8173300869595f, hazardMaps);
         placeMap.put(place.placeName, place);
 

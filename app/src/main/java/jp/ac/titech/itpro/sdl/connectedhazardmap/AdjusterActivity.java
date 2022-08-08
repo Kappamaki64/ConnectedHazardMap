@@ -86,56 +86,79 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
         editTextLng.setText(String.valueOf(hazardMap.centerLng));
         editTextWidth.setText(String.valueOf(hazardMap.width));
         editTextHeight.setText(String.valueOf(hazardMap.height));
-        editTextLat.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                hazardMap.centerLat = Float.parseFloat(editable.toString());
-                overlayHazardMapBitmap();
-            }
-        });
-        editTextLng.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                hazardMap.centerLng = Float.parseFloat(editable.toString());
-                overlayHazardMapBitmap();
-            }
-        });
-        editTextWidth.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                float newWidth = Float.parseFloat(editable.toString());
+
+        // NOTE: listening is too heavy to continue application
+//        editTextLat.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                hazardMap.centerLat = Float.parseFloat(editable.toString());
+//                map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(hazardMap.centerLat, hazardMap.centerLng)));
+//            }
+//        });
+//        editTextLng.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                hazardMap.centerLng = Float.parseFloat(editable.toString());
+//                map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(hazardMap.centerLat, hazardMap.centerLng)));
+//            }
+//        });
+//        editTextWidth.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                float newWidth = Float.parseFloat(editable.toString());
+//                hazardMap.height = (newWidth / hazardMap.width) * hazardMap.height;
+//                hazardMap.width = newWidth;
+//                editTextHeight.setText(String.valueOf(hazardMap.height));
+//            }
+//        });
+//        editTextHeight.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//                float newHeight = Float.parseFloat(editable.toString());
+//                hazardMap.width = (newHeight / hazardMap.height) * hazardMap.width;
+//                hazardMap.height = newHeight;
+//                editTextWidth.setText(String.valueOf(hazardMap.width));
+//            }
+//        });
+
+        ImageButton updateOverlayButton = findViewById(R.id.updateOverlayButton);
+        updateOverlayButton.setOnClickListener((view -> {
+            hazardMap.centerLat = Float.parseFloat(editTextLat.getText().toString());
+            hazardMap.centerLng = Float.parseFloat(editTextLng.getText().toString());
+
+            float newWidth = Float.parseFloat(editTextWidth.getText().toString());
+            float newHeight = Float.parseFloat(editTextHeight.getText().toString());
+            if (newWidth != hazardMap.width && newHeight == hazardMap.height) {
                 hazardMap.height = (newWidth / hazardMap.width) * hazardMap.height;
                 hazardMap.width = newWidth;
                 editTextHeight.setText(String.valueOf(hazardMap.height));
-                overlayHazardMapBitmap();
-            }
-        });
-        editTextHeight.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                float newHeight = Float.parseFloat(editable.toString());
-                hazardMap.width = (newHeight / hazardMap.height) * hazardMap.width;
+            } else if (newWidth == hazardMap.width && newHeight != hazardMap.height) {
+                hazardMap.height = (newWidth / hazardMap.width) * hazardMap.height;
+                hazardMap.width = newWidth;
+                editTextHeight.setText(String.valueOf(hazardMap.height));
+            } else if (newWidth != hazardMap.width && newHeight != hazardMap.height) {
+                hazardMap.width = newWidth;
                 hazardMap.height = newHeight;
-                editTextWidth.setText(String.valueOf(hazardMap.width));
-                overlayHazardMapBitmap();
             }
-        });
+
+            overlayHazardMapBitmap();
+        }));
 
         ImageButton updateCenterButton = findViewById(R.id.updateCenterButton);
         updateCenterButton.setOnClickListener((view -> {
