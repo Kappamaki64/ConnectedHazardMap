@@ -4,9 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -16,6 +19,7 @@ import android.graphics.pdf.PdfRenderer;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
@@ -70,6 +74,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap map;
     private final Map<String, GroundOverlay> hazardMapOverlayMap = new LinkedHashMap<>();
+    private final Map<String, String> displayNameToPlaceName = new LinkedHashMap<>();
     private GroundOverlay frontHazardMapOverlay;
     private Address cameraAddress;
 
@@ -111,11 +116,42 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 updateLocationText();
             } else {
                 hazardMapIsLocked = true;
-                lockHazardMapButton.setText("表示位置を優先");
+                lockHazardMapButton.setText("表示地点を優先");
                 lockHazardMapButton.setBackgroundColor(Color.GRAY);
                 locationTextView.setBackgroundColor(Color.RED);
                 locationTextView.setTextColor(Color.WHITE);
                 locationTextView.setTypeface(Typeface.DEFAULT_BOLD);
+            }
+        }));
+
+        Button pdfButton = findViewById(R.id.pdfButton);
+        pdfButton.setOnClickListener((view -> {
+            String toastText = getString(R.string.toast_cannot_find_place);
+            if (cameraAddress == null || cameraAddress.getLocality() == null) {
+                Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String placeName = displayNameToPlaceName.get(cameraAddress.getLocality());
+            if (placeName == null) {
+                Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            File f = new File(externalStorageFilePath(tabType, placeName));
+            if (!f.exists()) {
+                Toast.makeText(this, toastText, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Uri pdfUri = FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", f);
+            Log.d(TAG, pdfUri.toString());
+            Intent pdfOpenIntent = new Intent(Intent.ACTION_VIEW);
+            pdfOpenIntent.setClipData(ClipData.newRawUri("", pdfUri));
+            pdfOpenIntent.setDataAndType(pdfUri, "application/pdf");
+            pdfOpenIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            try {
+                startActivity(pdfOpenIntent);
+            } catch (ActivityNotFoundException e) {
+                String text = getString(R.string.toast_cannot_open_pdf);
+                Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
             }
         }));
 
@@ -292,6 +328,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             hazardMapOverlay.remove();
         }
         hazardMapOverlayMap.clear();
+        displayNameToPlaceName.clear();
 
         final int type = tabType;
         for (Place place : Data.placeMap.values()) {
@@ -306,6 +343,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .position(center, hazardMap.width, hazardMap.height);
             GroundOverlay hazardMapOverlay = map.addGroundOverlay(overlayOptions);
             hazardMapOverlayMap.put(place.displayName, hazardMapOverlay);
+            displayNameToPlaceName.put(place.displayName, place.placeName);
         }
     }
 

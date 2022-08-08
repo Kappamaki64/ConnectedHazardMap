@@ -3,6 +3,8 @@
     <string name="title_activity_maps">洪水ハザードマップ</string>
     <string name="toast_requires_permission_format">次の設定を許可してください %s</string>
     <string name="toast_requires_download">ハザードマップをダウンロードしてください</string>
+    <string name="toast_cannot_find_place">表示地点に対応するハザードマップがありません</string>
+    <string name="toast_cannot_open_pdf">PDFファイルを開くアプリケーションがありません</string>
     <string name="my_location_button_description">現在地を表示します</string>
     <string name="title_activity_downloader">データ管理</string>
     <string name="action_downloader">データ管理</string>
@@ -10,4 +12,5 @@
     <string name="type2">多摩川</string>
     <string name="title_activity_adjuster">Adjuster For Developers</string>
     <string name="location_text">%s %s</string>
+    <string name="pdf_button_text">PDFを開く</string>
 </resources>
