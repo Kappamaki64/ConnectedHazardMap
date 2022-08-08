@@ -6,12 +6,12 @@
         <type value="RUNNING_DEVICE_TARGET" />
         <deviceKey>
           <Key>
-            <type value="VIRTUAL_DEVICE_PATH" />
-            <value value="$USER_HOME$/.android/avd/moto_G6_API_28.avd" />
+            <type value="SERIAL_NUMBER" />
+            <value value="00d0a281e6c73a06" />
           </Key>
         </deviceKey>
       </Target>
     </runningDeviceTargetSelectedWithDropDown>
-    <timeTargetWasSelectedWithDropDown value="2022-08-08T07:45:27.848360Z" />
+    <timeTargetWasSelectedWithDropDown value="2022-08-08T08:41:21.702057Z" />
   </component>
 </project>

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ConnectedHazardMap</string>
-    <string name="title_activity_maps">ハザードマップ</string>
+    <string name="title_activity_maps">洪水ハザードマップ</string>
     <string name="toast_requires_permission_format">次の設定を許可してください %s</string>
     <string name="toast_requires_download">ハザードマップをダウンロードしてください</string>
     <string name="my_location_button_description">現在地を表示します</string>
