@@ -9,7 +9,11 @@ import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.ImageButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,7 +40,6 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
     private HazardMap hazardMap;
 
     private Bitmap hazardMapBitmap;
-    private int defaultWidth, defaultHeight;
 
     private GoogleMap map;
     private GroundOverlay hazardMapOverlay = null;
@@ -47,6 +50,8 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
 
         ActivityAdjusterBinding binding = ActivityAdjusterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         Intent intent = getIntent();
         String placeName = intent.getStringExtra(DownloaderActivity.EXTRA_PLACE);
@@ -72,6 +77,75 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         setupHazardMapBitmap();
+
+        EditText editTextLat = findViewById(R.id.editText_lat);
+        EditText editTextLng = findViewById(R.id.editText_lng);
+        EditText editTextWidth = findViewById(R.id.editText_width);
+        EditText editTextHeight = findViewById(R.id.editText_height);
+        editTextLat.setText(String.valueOf(hazardMap.centerLat));
+        editTextLng.setText(String.valueOf(hazardMap.centerLng));
+        editTextWidth.setText(String.valueOf(hazardMap.width));
+        editTextHeight.setText(String.valueOf(hazardMap.height));
+        editTextLat.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                hazardMap.centerLat = Float.parseFloat(editable.toString());
+                overlayHazardMapBitmap();
+            }
+        });
+        editTextLng.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                hazardMap.centerLng = Float.parseFloat(editable.toString());
+                overlayHazardMapBitmap();
+            }
+        });
+        editTextWidth.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                float newWidth = Float.parseFloat(editable.toString());
+                hazardMap.height = (newWidth / hazardMap.width) * hazardMap.height;
+                hazardMap.width = newWidth;
+                editTextHeight.setText(String.valueOf(hazardMap.height));
+                overlayHazardMapBitmap();
+            }
+        });
+        editTextHeight.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                float newHeight = Float.parseFloat(editable.toString());
+                hazardMap.width = (newHeight / hazardMap.height) * hazardMap.width;
+                hazardMap.height = newHeight;
+                editTextWidth.setText(String.valueOf(hazardMap.width));
+                overlayHazardMapBitmap();
+            }
+        });
+
+        ImageButton updateCenterButton = findViewById(R.id.updateCenterButton);
+        updateCenterButton.setOnClickListener((view -> {
+            LatLng newCenter = map.getCameraPosition().target;
+            hazardMap.centerLat = (float) newCenter.latitude;
+            hazardMap.centerLng = (float) newCenter.longitude;
+            editTextLat.setText(String.valueOf(hazardMap.centerLat));
+            editTextLng.setText(String.valueOf(hazardMap.centerLng));
+            overlayHazardMapBitmap();
+        }));
     }
 
     @Override
@@ -96,6 +170,12 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
     protected void onStop() {
         Log.d(TAG, "onStop");
         super.onStop();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        startActivity(new Intent(this, DownloaderActivity.class));
+        return super.onSupportNavigateUp();
     }
 
     /**
@@ -123,25 +203,9 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
             hazardMapOverlay.remove();
         }
 
-        LatLng center;
-        if (hazardMap.centerLat == -1 || hazardMap.centerLng == -1) {
-            center = new LatLng(place.governmentLat, place.governmentLng);
-            hazardMap.centerLat = place.governmentLat;
-            hazardMap.centerLng = place.governmentLng;
-        } else {
-            center = new LatLng(hazardMap.centerLat, hazardMap.centerLng);
-        }
-
-        float width, height;
-        if (hazardMap.width == -1 || hazardMap.height == -1) {
-            width = defaultWidth;
-            height = defaultHeight;
-            hazardMap.width = defaultWidth;
-            hazardMap.height = defaultHeight;
-        } else {
-            width = hazardMap.width;
-            height = hazardMap.height;
-        }
+        LatLng center = new LatLng(hazardMap.centerLat, hazardMap.centerLng);
+        float width = hazardMap.width;
+        float height = hazardMap.height;
 
         GroundOverlayOptions overlayOptions = new GroundOverlayOptions()
                 .image(BitmapDescriptorFactory.fromBitmap(hazardMapBitmap))
@@ -157,8 +221,8 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
             PdfRenderer.Page page = renderer.openPage(hazardMap.usedPageIndex);
 
             // densityDpi: dots / inch, get{Width,Height}(): (1 / 72) inch
-            defaultWidth = getResources().getDisplayMetrics().densityDpi / 72 * page.getWidth();
-            defaultHeight = getResources().getDisplayMetrics().densityDpi / 72 * page.getHeight();
+            int defaultWidth = getResources().getDisplayMetrics().densityDpi / 72 * page.getWidth();
+            int defaultHeight = getResources().getDisplayMetrics().densityDpi / 72 * page.getHeight();
 
             int width, height;
             if (defaultWidth > MapsActivity.MAX_DOTS_OF_HAZARD_MAP || defaultHeight > MapsActivity.MAX_DOTS_OF_HAZARD_MAP) {
@@ -173,6 +237,11 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
                 width = defaultWidth;
                 height = defaultHeight;
             }
+
+            if (hazardMap.centerLat == -1) hazardMap.centerLat = place.governmentLat;
+            if (hazardMap.centerLng == -1) hazardMap.centerLng = place.governmentLng;
+            if (hazardMap.width == -1) hazardMap.width = defaultWidth;
+            if (hazardMap.height == -1) hazardMap.height = defaultHeight;
 
             hazardMapBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             page.render(hazardMapBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);

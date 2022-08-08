@@ -1,9 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/map"
-    android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AdjusterActivity" />
+    tools:context=".MapsActivity">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".AdjusterActivity" />
+
+    <ImageButton
+        android:id="@+id/updateCenterButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:alpha="0.8"
+        android:backgroundTint="@color/design_default_color_primary_dark"
+        android:src="@android:drawable/ic_menu_mylocation"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        map:layout_constraintEnd_toEndOf="@id/map"
+        map:layout_constraintTop_toTopOf="@id/map"
+        map:srcCompat="@android:drawable/ic_menu_mylocation" />
+
+    <EditText
+        android:id="@+id/editText_lat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        map:layout_constraintBottom_toTopOf="@id/editText_width"
+        map:layout_constraintEnd_toStartOf="@+id/editText_lng"
+        map:layout_constraintStart_toStartOf="@+id/map" />
+
+    <EditText
+        android:id="@+id/editText_lng"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        map:layout_constraintBottom_toTopOf="@id/editText_height"
+        map:layout_constraintEnd_toEndOf="@+id/map"
+        map:layout_constraintStart_toEndOf="@+id/editText_lat" />
+
+    <EditText
+        android:id="@+id/editText_width"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        map:layout_constraintBottom_toBottomOf="@id/map"
+        map:layout_constraintEnd_toStartOf="@+id/editText_height"
+        map:layout_constraintStart_toStartOf="@+id/map" />
+
+    <EditText
+        android:id="@+id/editText_height"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        map:layout_constraintStart_toEndOf="@+id/editText_width"
+        map:layout_constraintEnd_toEndOf="@+id/map"
+        map:layout_constraintBottom_toBottomOf="@id/map" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
