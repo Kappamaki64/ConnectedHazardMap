@@ -92,7 +92,7 @@ public class DownloaderActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        startActivity(new Intent(this, MapsActivity.class));
+        finish();
         return super.onSupportNavigateUp();
     }
 

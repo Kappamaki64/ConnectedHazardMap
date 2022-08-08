@@ -197,7 +197,7 @@ public class AdjusterActivity extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     public boolean onSupportNavigateUp() {
-        startActivity(new Intent(this, DownloaderActivity.class));
+        finish();
         return super.onSupportNavigateUp();
     }
 
