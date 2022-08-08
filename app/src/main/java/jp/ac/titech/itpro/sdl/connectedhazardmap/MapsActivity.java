@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.pdf.PdfRenderer;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
@@ -21,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -41,15 +44,16 @@ import com.google.android.material.tabs.TabLayout;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Data;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.HazardMap;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Place;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
-    public static final int MAX_DOTS_OF_HAZARD_MAP = 5000;
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraIdleListener {
+    public static final int MAX_DOTS_OF_HAZARD_MAP = 2000;
     private static final String TAG = MapsActivity.class.getSimpleName();
 
     private static final String[] PERMISSIONS = {
@@ -62,7 +66,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int REQ_PERMISSIONS = 1234;
 
     private GoogleMap map;
-    private final List<GroundOverlay> hazardMapOverlays = new ArrayList<>();
+    private final Map<String, GroundOverlay> hazardMapOverlayMap = new LinkedHashMap<>();
+    private GroundOverlay frontHazardMapOverlay;
+    private Address cameraAddress;
 
     private FusedLocationProviderClient locationClient;
     private LocationRequest request;
@@ -70,6 +76,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private Location latestMyLocation = null;
 
+    private TextView locationTextView;
     private int tabType = 1;
 
     @Override
@@ -77,6 +84,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_maps);
+
+        locationTextView = findViewById(R.id.locationTextView);
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -93,6 +102,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return;
                 }
                 updateOverlays();
+                updateFrontOverlay();
             }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) { }
@@ -194,15 +204,61 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(@NonNull GoogleMap googleMap) {
         Log.d(TAG, "onMapReady");
         this.map = googleMap;
+        map.setOnCameraIdleListener(this);
         map.moveCamera(CameraUpdateFactory.zoomTo(15f));
+        updateCameraAddress();
         updateOverlays();
+        updateFrontOverlay();
+        updateLocationText();
+    }
+
+    @Override
+    public void onCameraIdle() {
+        Log.d(TAG, "onCameraIdle");
+        updateCameraAddress();
+        updateFrontOverlay();
+        updateLocationText();
+    }
+
+    private void updateFrontOverlay() {
+        if (cameraAddress == null) return;
+        String locality = cameraAddress.getLocality();
+        if (locality == null) return;
+        GroundOverlay hazardMapOverlay = hazardMapOverlayMap.get(locality);
+        if (hazardMapOverlay == null) return;
+        if (hazardMapOverlay == frontHazardMapOverlay) return;
+        if (frontHazardMapOverlay != null) frontHazardMapOverlay.setZIndex(0);
+        hazardMapOverlay.setZIndex(1);
+        frontHazardMapOverlay = hazardMapOverlay;
+    }
+
+    private void updateLocationText() {
+        if (cameraAddress == null) return;
+        String adminArea = cameraAddress.getAdminArea();
+        String locality = cameraAddress.getLocality();
+        if (adminArea == null || locality == null) return;
+        String text = getString(R.string.location_text, adminArea, locality);
+        locationTextView.setText(text);
+    }
+
+    private void updateCameraAddress() {
+        if (!Geocoder.isPresent()) return;
+        Geocoder geocoder = new Geocoder(getApplicationContext());
+        LatLng cameraLatLng = map.getCameraPosition().target;
+        try {
+            List<Address> addresses = geocoder.getFromLocation(cameraLatLng.latitude, cameraLatLng.longitude, 1);
+            if (addresses == null || addresses.isEmpty()) return;
+            cameraAddress = addresses.get(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateOverlays() {
-        for (GroundOverlay hazardMapOverlay : hazardMapOverlays) {
+        for (GroundOverlay hazardMapOverlay : hazardMapOverlayMap.values()) {
             hazardMapOverlay.remove();
         }
-        hazardMapOverlays.clear();
+        hazardMapOverlayMap.clear();
 
         final int type = tabType;
         for (Place place : Data.placeMap.values()) {
@@ -216,7 +272,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .image(BitmapDescriptorFactory.fromBitmap(hazardMapBitmap))
                     .position(center, hazardMap.width, hazardMap.height);
             GroundOverlay hazardMapOverlay = map.addGroundOverlay(overlayOptions);
-            hazardMapOverlays.add(hazardMapOverlay);
+            hazardMapOverlayMap.put(place.displayName, hazardMapOverlay);
         }
     }
 
