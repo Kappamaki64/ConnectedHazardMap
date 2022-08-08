@@ -10,6 +10,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.pdf.PdfRenderer;
 import android.location.Address;
 import android.location.Geocoder;
@@ -22,6 +24,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location latestMyLocation = null;
 
     private TextView locationTextView;
+    private boolean hazardMapIsLocked;
     private int tabType = 1;
 
     @Override
@@ -86,6 +90,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
 
         locationTextView = findViewById(R.id.locationTextView);
+
+        hazardMapIsLocked = false;
+        Button lockHazardMapButton = findViewById(R.id.lockHazardMapButton);
+        lockHazardMapButton.setText("前面に固定");
+        lockHazardMapButton.setBackgroundColor(Color.RED);
+        locationTextView.setBackgroundColor(Color.LTGRAY);
+        locationTextView.setTextColor(Color.BLACK);
+        lockHazardMapButton.setOnClickListener((view -> {
+            if (hazardMapIsLocked) {
+                hazardMapIsLocked = false;
+                lockHazardMapButton.setText("前面に固定");
+                lockHazardMapButton.setBackgroundColor(Color.RED);
+                locationTextView.setBackgroundColor(Color.LTGRAY);
+                locationTextView.setTextColor(Color.BLACK);
+                locationTextView.setTypeface(Typeface.DEFAULT);
+
+                updateCameraAddress();
+                updateFrontOverlay();
+                updateLocationText();
+            } else {
+                hazardMapIsLocked = true;
+                lockHazardMapButton.setText("表示位置を優先");
+                lockHazardMapButton.setBackgroundColor(Color.GRAY);
+                locationTextView.setBackgroundColor(Color.RED);
+                locationTextView.setTextColor(Color.WHITE);
+                locationTextView.setTypeface(Typeface.DEFAULT_BOLD);
+            }
+        }));
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -215,6 +247,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraIdle() {
         Log.d(TAG, "onCameraIdle");
+        if (hazardMapIsLocked) return;
         updateCameraAddress();
         updateFrontOverlay();
         updateLocationText();

@@ -66,14 +66,23 @@
             app:layout_constraintEnd_toEndOf="@+id/map"
             app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
+        <Button
+            android:id="@+id/lockHazardMapButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            app:layout_constraintEnd_toEndOf="@+id/map"
+            app:layout_constraintStart_toStartOf="@+id/map"
+            app:layout_constraintBottom_toBottomOf="@+id/map" />
+
         <TextView
             android:id="@+id/locationTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="16dp"
             android:background="@color/gray_400"
             android:textSize="24sp"
-            app:layout_constraintBottom_toBottomOf="@+id/map"
+            app:layout_constraintBottom_toTopOf="@+id/lockHazardMapButton"
             app:layout_constraintEnd_toEndOf="@+id/map"
             app:layout_constraintStart_toStartOf="@+id/map" />
 
