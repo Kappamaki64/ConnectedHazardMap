@@ -57,6 +57,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableEmitter;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Data;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.HazardMap;
 import jp.ac.titech.itpro.sdl.connectedhazardmap.myData.Place;
@@ -79,6 +83,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final Map<String, String> displayNameToPlaceName = new LinkedHashMap<>();
     private GroundOverlay frontHazardMapOverlay;
     private Address cameraAddress;
+    private ObservableEmitter<LatLng> onCameraTargetChanged;
 
     private FusedLocationProviderClient locationClient;
     private LocationRequest request;
@@ -97,6 +102,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_maps);
 
+        Observable.<LatLng>create(subscriber -> onCameraTargetChanged = subscriber)
+                .observeOn(Schedulers.newThread())
+                .map((cameraLatLng) -> { // on the new thread
+                    updateCameraAddress(cameraLatLng);
+                    return cameraLatLng;
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((v) -> { // on the main thread
+                    updateFrontOverlay();
+                    updateLocationText();
+                });
+
         locationTextView = findViewById(R.id.locationTextView);
 
         hazardMapIsLocked = false;
@@ -114,9 +131,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 locationTextView.setTextColor(Color.BLACK);
                 locationTextView.setTypeface(Typeface.DEFAULT);
 
-                updateCameraAddress();
-                updateFrontOverlay();
-                updateLocationText();
+                LatLng cameraLatLng = map.getCameraPosition().target;
+                onCameraTargetChanged.onNext(cameraLatLng);
             } else {
                 hazardMapIsLocked = true;
                 lockHazardMapButton.setText("表示地点を優先");
@@ -290,19 +306,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         this.map = googleMap;
         map.setOnCameraIdleListener(this);
         map.moveCamera(CameraUpdateFactory.zoomTo(15f));
-        updateCameraAddress();
-        updateOverlays();
-        updateFrontOverlay();
-        updateLocationText();
+
+        LatLng cameraLatLng = map.getCameraPosition().target; // on the main thread
+        Observable.create((subscriber) -> {
+            updateCameraAddress(cameraLatLng);  // on the new thread
+            subscriber.onNext(cameraLatLng);
+            subscriber.onComplete();
+        })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((v) -> {  // on the main thread
+                    updateOverlays();
+                    updateFrontOverlay();
+                    updateLocationText();
+                });
     }
 
     @Override
     public void onCameraIdle() {
         Log.d(TAG, "onCameraIdle");
         if (hazardMapIsLocked) return;
-        updateCameraAddress();
-        updateFrontOverlay();
-        updateLocationText();
+        if (onCameraTargetChanged != null) {
+            LatLng cameraLatLng = map.getCameraPosition().target;
+            onCameraTargetChanged.onNext(cameraLatLng);
+        }
     }
 
     private void updateFrontOverlay() {
@@ -326,10 +353,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationTextView.setText(text);
     }
 
-    private void updateCameraAddress() {
+    private void updateCameraAddress(LatLng cameraLatLng) {
         if (!Geocoder.isPresent()) return;
         Geocoder geocoder = new Geocoder(getApplicationContext());
-        LatLng cameraLatLng = map.getCameraPosition().target;
         try {
             List<Address> addresses = geocoder.getFromLocation(cameraLatLng.latitude, cameraLatLng.longitude, 1);
             if (addresses == null || addresses.isEmpty()) return;
